@@ -10,26 +10,29 @@ import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Slf4j
 @RestController
 public class UserController {
-    private final Set<User> users = new HashSet<>();
+    private final Map<Integer, User> users = new HashMap<>();
+    private final IdentifierGenerator idGen;
 
-    private final IdentifierGenerator idGen = new IdentifierGenerator();
+    public UserController(IdentifierGenerator idGen) {
+        this.idGen = idGen;
+    }
 
     @GetMapping("/users")
     public List<User> allUsers() {
-        return new ArrayList<>(users);
+        return new ArrayList<>(users.values());
     }
 
     @PostMapping("/users")
     public User create(@Valid @RequestBody User user) {
         validateUser(user);
-        if (users.contains(user)) {
+        if (users.containsValue(user)) {
             throw new AlreadyExistException("Пользователь с почтой " + user.getEmail() + " уже существует.");
         }
         if (user.getId() == null || idGen.isBusy(user.getId())) {
@@ -37,7 +40,7 @@ public class UserController {
         } else {
             idGen.toBusyIdList(user.getId());
         }
-        users.add(user);
+        users.put(user.getId(), user);
         return user;
     }
 
@@ -46,18 +49,18 @@ public class UserController {
         validateUser(user);
         if (user.getId() == null) {
             user.setId(idGen.getNextId());
-        } else if (!users.contains(user) && user.getId() != null) {
+            users.remove(user.getId());
+        } else if (!users.containsValue(user) && user.getId() != null) {
             idGen.toBusyIdList(user.getId());
         }
-        users.removeIf(user::equals);
-        users.add(user);
+        users.put(user.getId(), user);
         return user;
     }
 
     private void validateUser(User user) {
         if (user.getLogin().contains(" ")) {
             throw new ValidationException("Login пользователя не может содержать пробельных символов");
-        } else if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
+        } else if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть больше сегодняшней даты (обнаружено "
                     + user.getBirthday() + ")");
         } else if (user.getId() != null && user.getId() <= 0) {

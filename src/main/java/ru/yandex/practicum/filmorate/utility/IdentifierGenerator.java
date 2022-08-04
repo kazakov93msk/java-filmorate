@@ -1,8 +1,13 @@
 package ru.yandex.practicum.filmorate.utility;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
+@Scope("prototype")
 public class IdentifierGenerator {
     private Integer nextId = 1;
 

@@ -4,16 +4,30 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.Objects;
 
 @Data
 public class Film {
     private Integer id;
-    private @NonNull @NotBlank String name;
-    private @NonNull @NotBlank String description;
-    private Integer duration;
+    @NotBlank
+    private String name;
+    @NotBlank
+    @Size(max = 200)
+    private String description;
+    @Positive
+    private int duration;
+    @NonNull
     private LocalDate releaseDate;
+
+    public Film(String name, String description, int duration, @NonNull LocalDate releaseDate) {
+        this.name = name;
+        this.description = description;
+        this.duration = duration;
+        this.releaseDate = releaseDate;
+    }
 
     @Override
     public boolean equals(Object o) {
