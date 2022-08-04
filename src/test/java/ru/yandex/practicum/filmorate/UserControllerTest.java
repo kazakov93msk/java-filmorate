@@ -24,15 +24,11 @@ public class UserControllerTest {
     public void shouldReturnValidationExceptionWhenUserInvalid() {
         User loginWithSpaces = new User("mail@mail.ru", "space here",
                 null, LocalDate.of(2000, 1, 1));
-        User bornInFuture = new User("user@future.ru", "BackToPast",
-                null, LocalDate.of(3000, 1, 1));
         User userWithInvalidId = new User("InvalidId", "IdInvalid",
             "some name", LocalDate.of(2000, 1, 1));
         userWithInvalidId.setId(-1);
 
         assertThrows(ValidationException.class, () -> userController.create(loginWithSpaces),
-                "Ожидалось ValidationException, возвращено некорректное исключение");
-        assertThrows(ValidationException.class, () -> userController.create(bornInFuture),
                 "Ожидалось ValidationException, возвращено некорректное исключение");
         assertThrows(ValidationException.class, () -> userController.create(userWithInvalidId),
                 "Ожидалось ValidationException, возвращено некорректное исключение");

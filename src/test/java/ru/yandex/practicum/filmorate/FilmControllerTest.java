@@ -22,18 +22,12 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturnValidationExceptionWhenFilmInvalid() {
-        Film filmLongDescr = new Film("filmWithLongDescr", "a".repeat(201),
-                100, LocalDate.of(2000, 1, 1));
         Film filmFrom1890 = new Film("Very Old Film", "Cinema not was invented!",
                 100, LocalDate.of(1800, 1, 1));
-        Film filmWithDurationBelowZero = new Film("Below Zero", "It's already over!",
-                -100, LocalDate.of(2000, 1, 1));
         Film filmWithInvalidId = new Film("Invalid Identifier", "Id Invalid",
                 100, LocalDate.of(2000, 1, 1));
         filmWithInvalidId.setId(-1);
 
-        assertThrows(ValidationException.class, () -> filmController.create(filmLongDescr),
-                "Ожидалось ValidationException, возвращено некорректное исключение");
         assertThrows(ValidationException.class, () -> filmController.create(filmFrom1890),
                 "Ожидалось ValidationException, возвращено некорректное исключение");
         assertThrows(ValidationException.class, () -> filmController.create(filmWithInvalidId),
