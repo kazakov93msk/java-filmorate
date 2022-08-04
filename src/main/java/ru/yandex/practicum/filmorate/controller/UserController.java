@@ -60,9 +60,6 @@ public class UserController {
     private void validateUser(User user) {
         if (user.getLogin().contains(" ")) {
             throw new ValidationException("Login пользователя не может содержать пробельных символов");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Дата рождения не может быть больше сегодняшней даты (обнаружено "
-                    + user.getBirthday() + ")");
         } else if (user.getId() != null && user.getId() <= 0) {
             throw new ValidationException("ID сущности не может быть равно 0 или меньше 0");
         } else if (user.getName() == null || user.getName().isEmpty()) {

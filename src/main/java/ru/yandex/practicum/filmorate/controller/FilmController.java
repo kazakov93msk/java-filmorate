@@ -61,10 +61,7 @@ public class FilmController {
     }
 
     private void validateFilm(Film film) {
-        if (film.getDescription().length() > 200) {
-            throw new ValidationException("Длина описания не должна быть более 200 символов (обнаружено "
-                    + film.getDescription().length() + ").");
-        } else if (film.getReleaseDate().isBefore(FIRST_FILM_DATE)) {
+        if (film.getReleaseDate().isBefore(FIRST_FILM_DATE)) {
             throw new ValidationException("Дата резила не может быть раньше 28.12.1895г. (обнаружено "
                     + film.getReleaseDate() + ")");
         } else if (film.getId() != null && film.getId() <= 0) {
