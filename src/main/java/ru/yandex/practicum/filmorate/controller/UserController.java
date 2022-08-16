@@ -1,69 +1,78 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
+@Component
+@RequestMapping("/users")
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
-    private final IdentifierGenerator idGen;
-
-    public UserController(IdentifierGenerator idGen) {
-        this.idGen = idGen;
+    private final UserStorage userStorage;
+    private final UserService userService;
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
     }
 
-    @GetMapping("/users")
-    public List<User> allUsers() {
-        return new ArrayList<>(users.values());
+    @GetMapping
+    public List<User> findAll() {
+        return userStorage.findAll();
     }
 
-    @PostMapping("/users")
+    @GetMapping("/{id}")
+    public User findUser(@PathVariable(name = "id") Integer id) {
+        return userStorage.getUserById(id);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> findUserFriends(@PathVariable(name = "id") Integer id) {
+        return userStorage.getUserById(id).getFriends().stream()
+                .map(userStorage::getUserById)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> findFriendIntersection(
+            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "otherId") Integer otherId
+    ) {
+        return userService.getFriendIntersection(userStorage.getUserById(id), userStorage.getUserById(otherId));
+    }
+
+    @PostMapping
     public User create(@Valid @RequestBody User user) {
-        validateUser(user);
-        if (users.containsValue(user)) {
-            throw new AlreadyExistException("Пользователь с почтой " + user.getEmail() + " уже существует.");
-        }
-        if (user.getId() == null || idGen.isBusy(user.getId())) {
-            user.setId(idGen.getNextId());
-        } else {
-            idGen.toBusyIdList(user.getId());
-        }
-        users.put(user.getId(), user);
-        return user;
+        return userStorage.create(user);
     }
 
-    @PutMapping("/users")
+    @PutMapping
     public User update(@Valid @RequestBody User user) {
-        validateUser(user);
-        if (user.getId() == null) {
-            user.setId(idGen.getNextId());
-            users.remove(user.getId());
-        } else if (!users.containsValue(user) && user.getId() != null) {
-            idGen.toBusyIdList(user.getId());
-        }
-        users.put(user.getId(), user);
-        return user;
+        return userStorage.update(user);
     }
 
-    private void validateUser(User user) {
-        if (user.getLogin().contains(" ")) {
-            throw new ValidationException("Login пользователя не может содержать пробельных символов");
-        } else if (user.getId() != null && user.getId() <= 0) {
-            throw new ValidationException("ID сущности не может быть равно 0 или меньше 0");
-        } else if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addFriend(
+            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "friendId") Integer friendId
+    ) {
+        return userService.addFriend(userStorage.getUserById(id), userStorage.getUserById(friendId));
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User removeFriend(
+            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "friendId") Integer friendId
+    ) {
+        return userService.removeFriend(userStorage.getUserById(id), userStorage.getUserById(friendId));
     }
 }
