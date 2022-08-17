@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.exception.IncorrectIdentifierException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
+import javax.validation.ConstraintViolationException;
+
 @RestControllerAdvice("ru.yandex.practicum.filmorate")
 @Slf4j
 public class ErrorHandler {
@@ -33,7 +35,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handleNotFound(final IncorrectIdentifierException e) {
+    public ResponseEntity<String> handleIncorrectId(final IncorrectIdentifierException e) {
+        log.debug(e.getMessage());
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> handleConstraintViolation(final ConstraintViolationException e) {
         log.debug(e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }

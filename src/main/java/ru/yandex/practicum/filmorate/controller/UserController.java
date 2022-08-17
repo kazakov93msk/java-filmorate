@@ -3,17 +3,19 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.IncorrectIdentifierException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @Slf4j
 @RestController
 @Component
+@Validated
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
@@ -28,10 +30,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User findUser(@PathVariable(name = "id") Integer id) {
-        if (id <= 0) {
-            throw new IncorrectIdentifierException("ID пользователя не может быть меньше или равен нулю.");
-        }
+    public User findUser(@PathVariable(name = "id") @Positive Integer id) {
         return userService.getUserById(id);
     }
 
@@ -42,11 +41,9 @@ public class UserController {
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> findFriendIntersection(
-            @PathVariable(name = "id") Integer id,
-            @PathVariable(name = "otherId") Integer otherId
+            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "otherId") @Positive Integer otherId
     ) {
-        validateId(id);
-        validateId(otherId);
         return userService.getFriendIntersection(id, otherId);
     }
 
@@ -62,27 +59,17 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public User addFriend(
-            @PathVariable(name = "id") Integer id,
-            @PathVariable(name = "friendId") Integer friendId
+            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "friendId") @Positive Integer friendId
     ) {
-        validateId(id);
-        validateId(friendId);
         return userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public User removeFriend(
-            @PathVariable(name = "id") Integer id,
-            @PathVariable(name = "friendId") Integer friendId
+            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "friendId") @Positive Integer friendId
     ) {
-        validateId(id);
-        validateId(friendId);
         return userService.removeFriend(id, friendId);
-    }
-
-    private void validateId(Integer id) {
-        if (id <= 0) {
-            throw new IncorrectIdentifierException("ID не может быть меньше или равен нулю.");
-        }
     }
 }
