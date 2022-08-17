@@ -3,8 +3,15 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
 
 import java.time.LocalDate;
@@ -14,10 +21,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FilmControllerTest {
     FilmController filmController;
-
+    UserStorage userStorage;
+    FilmStorage filmStorage;
+    FilmService filmService;
+    UserService userService;
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController(new IdentifierGenerator());
+        userStorage = new InMemoryUserStorage(new IdentifierGenerator());
+        filmStorage = new InMemoryFilmStorage(new IdentifierGenerator());
+        userService = new UserService(userStorage);
+        filmService = new FilmService(filmStorage, userService);
+        filmController = new FilmController(filmService);
     }
 
     @Test
@@ -30,8 +44,8 @@ public class FilmControllerTest {
 
         assertThrows(ValidationException.class, () -> filmController.create(filmFrom1890),
                 "Ожидалось ValidationException, возвращено некорректное исключение");
-        assertThrows(ValidationException.class, () -> filmController.create(filmWithInvalidId),
-                "Ожидалось ValidationException, возвращено некорректное исключение");
+        assertThrows(NotFoundException.class, () -> filmController.create(filmWithInvalidId),
+                "Ожидалось NotFoundException, возвращено некорректное исключение");
     }
 
     @Test

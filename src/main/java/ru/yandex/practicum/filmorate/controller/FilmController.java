@@ -1,71 +1,68 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
+@Component
+@Validated
+@RequestMapping("/films")
 public class FilmController {
-    public static LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
-    private final Map<Integer, Film> films = new HashMap<>();
-    private final IdentifierGenerator idGen;
+    private final FilmService filmService;
 
-    public FilmController(IdentifierGenerator idGen) {
-        this.idGen = idGen;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
-    @GetMapping(("/films"))
-    public List<Film> allFilms() {
-        return new ArrayList<>(films.values());
+    @GetMapping
+    public List<Film> findAll() {
+        return filmService.getAllFilms();
     }
 
-    @PostMapping("/films")
+    @GetMapping("/{id}")
+    public Film findFilm(@PathVariable(name = "id") @Positive Integer id) {
+        return filmService.getFilmById(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopular(@RequestParam(name = "count", defaultValue = "10") @Positive Integer count) {
+        return filmService.getPopular(count);
+    }
+
+    @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        log.debug("Получен POST-запрос на добавление " + film.toString());
-        validateFilm(film);
-        if (films.containsValue(film)) {
-            throw new AlreadyExistException("Фильм с названием " + film.getName() + " уже существует");
-        }
-        if (film.getId() == null || idGen.isBusy(film.getId())) {
-            film.setId(idGen.getNextId());
-        } else {
-            idGen.toBusyIdList(film.getId());
-        }
-        films.put(film.getId(), film);
-        return film;
+        return filmService.create(film);
     }
 
-    @PutMapping("/films")
+    @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        log.debug("Получен PUT-запрос на обновление " + film.toString());
-        validateFilm(film);
-        if (film.getId() == null) {
-            film.setId(idGen.getNextId());
-            films.remove(film.getId());
-        } else if (!films.containsValue(film) && film.getId() != null) {
-            idGen.toBusyIdList(film.getId());
-        }
-        films.put(film.getId(), film);
-        return film;
+        return filmService.update(film);
     }
 
-    private void validateFilm(Film film) {
-        if (film.getReleaseDate().isBefore(FIRST_FILM_DATE)) {
-            throw new ValidationException("Дата резила не может быть раньше 28.12.1895г. (обнаружено "
-                    + film.getReleaseDate() + ")");
-        } else if (film.getId() != null && film.getId() <= 0) {
-            throw new ValidationException("ID сущности не может быть равно 0 или меньше 0");
-        }
+    @PutMapping("/{id}/like/{userId}")
+    public Film addLike(
+            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "userId") @Positive Integer userId
+    ) {
+        return filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Film removeLike(
+            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "userId") @Positive Integer userId
+    ) {
+        return filmService.removeLike(id, userId);
     }
 }

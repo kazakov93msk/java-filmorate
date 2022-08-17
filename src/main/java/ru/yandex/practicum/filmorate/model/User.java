@@ -7,7 +7,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.util.*;
 
 @Data
 public class User {
@@ -21,8 +21,21 @@ public class User {
     @NonNull
     @PastOrPresent
     private LocalDate birthday;
+    private Set<Integer> friends = new HashSet<>();
 
-    public User(String email, String login, String name, @NonNull LocalDate birthday) {
+    public List<Integer> getFriends() {
+        return new ArrayList<>(friends);
+    }
+
+    public void addFriend(User user) {
+        friends.add(user.getId());
+    }
+
+    public void removeFriend(User user) {
+        friends.remove(user.getId());
+    }
+
+    public User(String email, String login, String name, LocalDate birthday) {
         this.email = email;
         this.login = login;
         this.name = name;
