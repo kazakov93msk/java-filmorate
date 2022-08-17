@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
@@ -8,12 +9,10 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
+@Slf4j
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Integer, User> users = new HashMap<>();
@@ -25,16 +24,16 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> findAll() {
+    public List<User> getAllUsers() {
         return new ArrayList<>(users.values());
     }
 
     @Override
-    public User getUserById(Integer userId) {
+    public Optional<User> getUserById(Integer userId) {
         if (userId <= 0) {
             throw new IncorrectIdentifierException("ID пользователя не может быть меньше или равен 0.");
         }
-        return users.get(userId);
+        return Optional.of(users.get(userId));
     }
 
     @Override

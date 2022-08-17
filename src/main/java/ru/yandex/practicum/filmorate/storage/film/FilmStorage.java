@@ -12,7 +12,7 @@ public interface FilmStorage {
 
     List<Film> findAll();
 
-    Film getFilmById(Integer filmId);
+    Optional<Film> getFilmById(Integer filmId);
 
     Film create(Film film);
 

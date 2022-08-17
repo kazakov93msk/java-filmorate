@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
@@ -12,6 +13,7 @@ import ru.yandex.practicum.filmorate.utility.IdentifierGenerator;
 import java.util.*;
 
 @Component
+@Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Integer, Film> films = new HashMap<>();
@@ -28,11 +30,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(Integer filmId) {
+    public Optional<Film> getFilmById(Integer filmId) {
         if (filmId <= 0) {
             throw new IncorrectIdentifierException("ID фильма не может быть меньше или равно нулю.");
         }
-        return films.get(filmId);
+        return Optional.ofNullable(films.get(filmId));
     }
 
     @Override

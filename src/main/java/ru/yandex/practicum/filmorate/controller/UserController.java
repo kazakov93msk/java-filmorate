@@ -4,42 +4,40 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdentifierException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 @Component
 @RequestMapping("/users")
 public class UserController {
-    private final UserStorage userStorage;
     private final UserService userService;
     @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
     public List<User> findAll() {
-        return userStorage.findAll();
+        return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
     public User findUser(@PathVariable(name = "id") Integer id) {
-        return userStorage.getUserById(id);
+        if (id <= 0) {
+            throw new IncorrectIdentifierException("ID пользователя не может быть меньше или равен нулю.");
+        }
+        return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> findUserFriends(@PathVariable(name = "id") Integer id) {
-        return userStorage.getUserById(id).getFriends().stream()
-                .map(userStorage::getUserById)
-                .collect(Collectors.toList());
+        return userService.getUserFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
@@ -47,17 +45,19 @@ public class UserController {
             @PathVariable(name = "id") Integer id,
             @PathVariable(name = "otherId") Integer otherId
     ) {
-        return userService.getFriendIntersection(userStorage.getUserById(id), userStorage.getUserById(otherId));
+        validateId(id);
+        validateId(otherId);
+        return userService.getFriendIntersection(id, otherId);
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        return userStorage.create(user);
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        return userStorage.update(user);
+        return userService.update(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -65,7 +65,9 @@ public class UserController {
             @PathVariable(name = "id") Integer id,
             @PathVariable(name = "friendId") Integer friendId
     ) {
-        return userService.addFriend(userStorage.getUserById(id), userStorage.getUserById(friendId));
+        validateId(id);
+        validateId(friendId);
+        return userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
@@ -73,6 +75,14 @@ public class UserController {
             @PathVariable(name = "id") Integer id,
             @PathVariable(name = "friendId") Integer friendId
     ) {
-        return userService.removeFriend(userStorage.getUserById(id), userStorage.getUserById(friendId));
+        validateId(id);
+        validateId(friendId);
+        return userService.removeFriend(id, friendId);
+    }
+
+    private void validateId(Integer id) {
+        if (id <= 0) {
+            throw new IncorrectIdentifierException("ID не может быть меньше или равен нулю.");
+        }
     }
 }

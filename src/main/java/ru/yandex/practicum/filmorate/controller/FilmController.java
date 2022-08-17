@@ -4,10 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdentifierException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -17,25 +16,22 @@ import java.util.List;
 @Component
 @RequestMapping("/films")
 public class FilmController {
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
-    private final UserStorage userStorage;
 
     @Autowired
-    public FilmController(FilmStorage filmStorage, FilmService filmService, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
-        this.userStorage = userStorage;
     }
 
     @GetMapping
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        return filmService.getAllFilms();
     }
 
     @GetMapping("/{id}")
     public Film findFilm(@PathVariable(name = "id") Integer id) {
-        return filmStorage.getFilmById(id);
+        validateId(id);
+        return filmService.getFilmById(id);
     }
 
     @GetMapping("/popular")
@@ -45,12 +41,12 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        return filmStorage.create(film);
+        return filmService.create(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        return filmStorage.update(film);
+        return filmService.update(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -58,7 +54,9 @@ public class FilmController {
             @PathVariable(name = "id") Integer id,
             @PathVariable(name = "userId") Integer userId
     ) {
-        return filmService.addLike(filmStorage.getFilmById(id), userStorage.getUserById(userId));
+        validateId(id);
+        validateId(userId);
+        return filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
@@ -66,6 +64,14 @@ public class FilmController {
             @PathVariable(name = "id") Integer id,
             @PathVariable(name = "userId") Integer userId
     ) {
-        return filmService.removeLike(filmStorage.getFilmById(id), userStorage.getUserById(userId));
+        validateId(id);
+        validateId(userId);
+        return filmService.removeLike(id, userId);
+    }
+    
+    private void validateId(Integer id) {
+        if (id <= 0) {
+            throw new IncorrectIdentifierException("ID не может быть меньше или равен нулю.");
+        }
     }
 }

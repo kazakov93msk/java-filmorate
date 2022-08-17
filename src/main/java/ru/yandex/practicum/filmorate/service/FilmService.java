@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
@@ -8,24 +9,44 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+        this.userService = userService;
     }
 
-    public Film addLike(Film film, User user) {
+    public Film create(Film film) {
+        return filmStorage.create(film);
+    }
+
+    public Film update(Film film) {
+        return filmStorage.update(film);
+    }
+
+    public List<Film> getAllFilms() {
+        return filmStorage.findAll();
+    }
+
+    public Film getFilmById(Integer id) {
+        return filmStorage.getFilmById(id).orElseThrow(
+                () -> new NotFoundException(String.format("Фильм с ID %d не найден.", id))
+        );
+    }
+
+    public Film addLike(Integer filmId, Integer userId) {
+        Film film = getFilmById(filmId);
+        User user = userService.getUserById(userId);
         validateFilm(film);
         validateUser(user);
         if (film.getLikes().contains(user.getId())) {
@@ -37,7 +58,9 @@ public class FilmService {
         return film;
     }
 
-    public Film removeLike(Film film, User user) {
+    public Film removeLike(Integer filmId, Integer userId) {
+        Film film = getFilmById(filmId);
+        User user = userService.getUserById(userId);
         validateFilm(film);
         validateUser(user);
         if (!film.getLikes().contains(user.getId())) {
@@ -66,7 +89,7 @@ public class FilmService {
     }
 
     private void validateUser(User user) {
-        if (!userStorage.findAll().contains(user)) {
+        if (!userService.getAllUsers().contains(user)) {
             throw new NotFoundException(String.format("Пользователя с email %s не существует.", user.getEmail()));
         }
         if (user.getId() != null && user.getId() <= 0) {

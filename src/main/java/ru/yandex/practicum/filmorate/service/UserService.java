@@ -24,7 +24,33 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public User addFriend(User user, User friend) {
+    public User create(User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        return userStorage.update(user);
+    }
+
+    public List<User> getAllUsers() {
+        return userStorage.getAllUsers();
+    }
+
+    public User getUserById(Integer id) {
+        return userStorage.getUserById(id).orElseThrow(() ->
+                new NotFoundException(String.format("Пользователь с ID %d не найден.", id))
+        );
+    }
+
+    public List<User> getUserFriends(Integer id) {
+        return getUserById(id).getFriends().stream()
+                .map(this::getUserById)
+                .collect(Collectors.toList());
+    }
+
+    public User addFriend(Integer id, Integer friendId) {
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
         validate(user);
         validate(friend);
         if (user.equals(friend)) {
@@ -41,7 +67,9 @@ public class UserService {
         return user;
     }
 
-    public User removeFriend(User user, User friend) {
+    public User removeFriend(Integer id, Integer friendId) {
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
         validate(user);
         validate(friend);
         if (!user.getFriends().contains(friend.getId())) {
@@ -55,10 +83,10 @@ public class UserService {
         return user;
     }
 
-    public List<User> getFriendIntersection(User user, User other) {
-        return user.getFriends().stream()
-                .filter(other.getFriends()::contains)
-                .map(userStorage::getUserById)
+    public List<User> getFriendIntersection(Integer id, Integer otherId) {
+        return getUserById(id).getFriends().stream()
+                .filter(getUserById(otherId).getFriends()::contains)
+                .map(this::getUserById)
                 .collect(Collectors.toList());
     }
 
@@ -66,7 +94,7 @@ public class UserService {
         if (user.getId() != null && user.getId() <= 0) {
             throw new IncorrectIdentifierException("ID пользователя не может быть меньше или равен нулю.");
         }
-        if (!userStorage.findAll().contains(user)) {
+        if (!userStorage.getAllUsers().contains(user)) {
             throw new NotFoundException(String.format("Пользователя с email %s не существует", user.getEmail()));
         }
     }
