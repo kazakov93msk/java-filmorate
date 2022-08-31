@@ -1,6 +1,6 @@
 # java-filmorate
 **Filmorate Database ER-diagram**
-![FilmorateDB_ERD](https://github.com/kazakov93msk/java-filmorate/blob/main/filmorate_erd.png)
+![FilmorateDB_ERD](https://github.com/kazakov93msk/java-filmorate/blob/main/FilmorateDB_ERD.jpg)
 
 ## Примеры запросов к БД
 
@@ -75,3 +75,6 @@ WHERE UPPER(f.name) LIKE '%{ часть названия }%'
 
 ---
  
+## Комментарий пост-ревью
+- [x] Добавлена возможность присваивать фильму несколько жарнов, включена в схему дополнительная таблица Film_Genres
+- [x] В таблицу User_Relationships добавлено поле `Confimed` типа Boolean для реализации функционала подтверждения заявки в друзья.
