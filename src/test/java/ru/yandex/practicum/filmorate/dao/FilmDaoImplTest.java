@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Sql(scripts = "classpath:scripts/test_data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql({"/schema.sql", "/scripts/test_data.sql"})
 public class FilmDaoImplTest {
     private final FilmDao filmDao;
     private final UserDao userDao;
