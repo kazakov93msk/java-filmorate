@@ -26,35 +26,35 @@ public class UserController {
 
     @GetMapping
     public List<User> findAll() {
-        return userService.getAllUsers();
+        return userService.findAllUsers();
     }
 
     @GetMapping("/{id}")
     public User findUser(@PathVariable(name = "id") @Positive Integer id) {
-        return userService.getUserById(id);
+        return userService.findUserById(id);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> findUserFriends(@PathVariable(name = "id") Integer id) {
-        return userService.getUserFriends(id);
+    public List<User> findUserFriends(@PathVariable(name = "id") @Positive Integer userId) {
+        return userService.findFriendsByUserId(userId);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> findFriendIntersection(
-            @PathVariable(name = "id") @Positive Integer id,
+            @PathVariable(name = "id") @Positive Integer userId,
             @PathVariable(name = "otherId") @Positive Integer otherId
     ) {
-        return userService.getFriendIntersection(id, otherId);
+        return userService.getFriendIntersection(userId, otherId);
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        return userService.create(user);
+        return userService.createUser(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        return userService.update(user);
+        return userService.updateUser(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

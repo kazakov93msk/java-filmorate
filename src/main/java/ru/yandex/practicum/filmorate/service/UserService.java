@@ -3,12 +3,14 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserDao;
+import ru.yandex.practicum.filmorate.dao.UserFriendDao;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.IncorrectIdentifierException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,77 +18,70 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
-
-    private final UserStorage userStorage;
+    private final UserDao userDao;
+    private final UserFriendDao friendDao;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserDao userDao, UserFriendDao friendDao) {
+        this.userDao = userDao;
+        this.friendDao = friendDao;
     }
 
-    public User create(User user) {
-        return userStorage.create(user);
+    public List<User> findAllUsers() {
+        return userDao.findAllUsers();
     }
 
-    public User update(User user) {
-        return userStorage.update(user);
-    }
-
-    public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
-    }
-
-    public User getUserById(Integer id) {
-        return userStorage.getUserById(id).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с ID %d не найден.", id))
+    public User findUserById(Integer userId) {
+        return userDao.findUserById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("Пользователь с ID %d не найден.", userId))
         );
     }
-
-    public List<User> getUserFriends(Integer id) {
-        return getUserById(id).getFriends().stream()
-                .map(this::getUserById)
-                .collect(Collectors.toList());
+    public User createUser(User user) {
+        validate(user);
+        return userDao.createUser(user);
     }
 
-    public User addFriend(Integer id, Integer friendId) {
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
+    public User updateUser(User user) {
         validate(user);
-        validate(friend);
+        return userDao.updateUser(user);
+    }
+
+    public List<User> findFriendsByUserId(Integer userId) {
+        return friendDao.findFriendsByUserId(userId);
+    }
+
+    public User addFriend(Integer userId, Integer friendId) {
+        User user = findUserById(userId);
+        User friend = findUserById(friendId);
         if (user.equals(friend)) {
             throw new ValidationException("Невозможно добавить в друзья пользователя самого себя");
         }
-        if (user.getFriends().contains(friend.getId())) {
+        if (findFriendsByUserId(userId).contains(friend)) {
             throw new AlreadyExistException(String.format(
                     "Пользователь %s уже в друзьях у %s",
                     friend.getEmail(), user.getEmail()
             ));
         }
-        user.addFriend(friend);
-        friend.addFriend(user);
+        friendDao.createFriends(userId, friendId);
         return user;
     }
 
-    public User removeFriend(Integer id, Integer friendId) {
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
-        validate(user);
-        validate(friend);
-        if (!user.getFriends().contains(friend.getId())) {
+    public User removeFriend(Integer userId, Integer friendId) {
+        User user = findUserById(userId);
+        User friend = findUserById(friendId);
+        if (!friendDao.findFriendsByUserId(userId).contains(friend)) {
             throw new ValidationException(String.format(
                     "Пользователя с email %s нет в друзьях у пользователя с email %s",
                     user.getEmail(), friend.getEmail()
             ));
         }
-        user.removeFriend(friend);
-        friend.removeFriend(user);
+        friendDao.deleteFriends(userId, friendId);
         return user;
     }
 
     public List<User> getFriendIntersection(Integer id, Integer otherId) {
-        return getUserById(id).getFriends().stream()
-                .filter(getUserById(otherId).getFriends()::contains)
-                .map(this::getUserById)
+        return friendDao.findFriendsByUserId(id).stream()
+                .filter(friendDao.findFriendsByUserId(otherId)::contains)
                 .collect(Collectors.toList());
     }
 
@@ -94,8 +89,8 @@ public class UserService {
         if (user.getId() != null && user.getId() <= 0) {
             throw new IncorrectIdentifierException("ID пользователя не может быть меньше или равен нулю.");
         }
-        if (!userStorage.getAllUsers().contains(user)) {
-            throw new NotFoundException(String.format("Пользователя с email %s не существует", user.getEmail()));
+        if (user.getName() == null || user.getName().equals("")) {
+            user.setName(user.getLogin());
         }
     }
 }

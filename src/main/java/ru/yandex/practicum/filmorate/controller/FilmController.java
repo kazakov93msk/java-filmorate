@@ -27,12 +27,12 @@ public class FilmController {
 
     @GetMapping
     public List<Film> findAll() {
-        return filmService.getAllFilms();
+        return filmService.findAllFilms();
     }
 
     @GetMapping("/{id}")
     public Film findFilm(@PathVariable(name = "id") @Positive Integer id) {
-        return filmService.getFilmById(id);
+        return filmService.findFilmById(id);
     }
 
     @GetMapping("/popular")
@@ -42,12 +42,12 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        return filmService.create(film);
+        return filmService.createFilm(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
+        return filmService.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
