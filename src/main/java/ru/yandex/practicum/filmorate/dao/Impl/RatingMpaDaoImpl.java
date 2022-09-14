@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -15,30 +16,27 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class RatingMpaDaoImpl implements RatingMpaDao {
 
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public RatingMpaDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final RatingMpaMapper mpaMapper;
 
     @Override
     public List<RatingMpa> findAllRatingsMpa() {
-        return jdbcTemplate.query("SELECT * FROM ratings_mpa", new RatingMpaMapper());
+        return jdbcTemplate.query("SELECT * FROM ratings_mpa", mpaMapper);
     }
 
     @Override
     public Optional<RatingMpa> findRatingMpaById(Integer ratingId) {
         String sql = "SELECT * FROM ratings_mpa WHERE id = ?";
-        return jdbcTemplate.query(sql, new RatingMpaMapper(), ratingId).stream().findFirst();
+        return jdbcTemplate.query(sql, mpaMapper, ratingId).stream().findFirst();
     }
 
     @Override
     public Optional<RatingMpa> findRatingMpaByFilmId(Integer filmId) {
         String sql = "SELECT r.* FROM ratings_mpa r JOIN films f ON f.mpa = r.id WHERE f.id = ?";
-        return jdbcTemplate.query(sql, new RatingMpaMapper(), filmId).stream().findFirst();
+        return jdbcTemplate.query(sql, mpaMapper, filmId).stream().findFirst();
     }
 
     @Override

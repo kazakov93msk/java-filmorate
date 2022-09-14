@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,13 +22,9 @@ import java.util.List;
 @Component
 @Validated
 @RequestMapping("/mpa")
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class RatingMpaController {
     private final RatingMpaService mpaService;
-
-    @Autowired
-    public RatingMpaController(RatingMpaService mpaService) {
-        this.mpaService = mpaService;
-    }
 
     @GetMapping
     public List<RatingMpa> findAllGenres() {

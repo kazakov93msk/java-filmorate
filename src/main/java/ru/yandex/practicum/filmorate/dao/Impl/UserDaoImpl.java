@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -16,23 +17,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserDaoImpl implements UserDao {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public UserDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final UserMapper userMapper;
 
     @Override
     public List<User> findAllUsers() {
-        return jdbcTemplate.query("SELECT * FROM users", new UserMapper());
+        return jdbcTemplate.query("SELECT * FROM users", userMapper);
     }
 
     @Override
     public Optional<User> findUserById(Integer userId) {
         String sql = "SELECT * FROM users WHERE id = ?";
-        return jdbcTemplate.query(sql, new UserMapper(), userId).stream().findFirst();
+        return jdbcTemplate.query(sql, userMapper, userId).stream().findFirst();
     }
 
     @Override

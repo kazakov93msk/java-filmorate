@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmService {
 
     private final LocalDate FIRST_FILM = LocalDate.of(1895, 12, 28);
@@ -29,15 +31,6 @@ public class FilmService {
     private final FilmGenreDao filmGenreDao;
     private final UserService userService;
 
-
-    @Autowired
-    public FilmService(FilmDao filmDao, FilmLikeDao likeDao, RatingMpaDao mpaDao, FilmGenreDao filmGenreDao, UserService userService) {
-        this.filmDao = filmDao;
-        this.filmGenreDao = filmGenreDao;
-        this.userService = userService;
-        this.likeDao = likeDao;
-        this.mpaDao = mpaDao;
-    }
 
     public List<Film> findAllFilms() {
         return filmDao.findAllFilms();
@@ -54,11 +47,8 @@ public class FilmService {
         validate(film);
         List<Genre> filmGenres = film.getGenres();
         Film returnedFilm = fillFilmData(filmDao.createFilm(film));
-        filmGenreDao.deleteFilmGenresByFilmId(film.getId());
         if (filmGenres != null && !filmGenres.isEmpty()) {
-            for (Genre genre : new HashSet<>(filmGenres)) {
-                filmGenreDao.createFilmGenre(returnedFilm.getId(), genre.getId());
-            }
+            filmGenreDao.createFilmGenreBatch(returnedFilm.getId(), new HashSet<>(filmGenres));
         }
         return fillFilmData(returnedFilm);
     }
@@ -69,9 +59,7 @@ public class FilmService {
         Film returnedFilm = fillFilmData(filmDao.updateFilm(film));
         filmGenreDao.deleteFilmGenresByFilmId(film.getId());
         if (filmGenres != null && !filmGenres.isEmpty()) {
-            for (Genre genre : new HashSet<>(filmGenres)) {
-                filmGenreDao.createFilmGenre(returnedFilm.getId(), genre.getId());
-            }
+            filmGenreDao.createFilmGenreBatch(returnedFilm.getId(), new HashSet<>(filmGenres));
         }
         return fillFilmData(returnedFilm);
     }

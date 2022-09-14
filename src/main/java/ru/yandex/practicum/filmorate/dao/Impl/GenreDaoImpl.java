@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -15,23 +16,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class GenreDaoImpl implements GenreDao {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public GenreDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final GenreMapper genreMapper;
 
     @Override
     public List<Genre> findAllGenres() {
-        return jdbcTemplate.query("SELECT * FROM genres ORDER BY id", new GenreMapper());
+        return jdbcTemplate.query("SELECT * FROM genres ORDER BY id", genreMapper);
     }
 
     @Override
     public Optional<Genre> findGenreById(Integer genreId) {
         String sql = "SELECT * FROM genres WHERE id = ?";
-        return jdbcTemplate.query(sql, new GenreMapper(), genreId).stream().findFirst();
+        return jdbcTemplate.query(sql, genreMapper, genreId).stream().findFirst();
     }
 
     @Override

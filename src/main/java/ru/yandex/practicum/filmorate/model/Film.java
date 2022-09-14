@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
@@ -17,16 +18,17 @@ import java.util.*;
 @NoArgsConstructor
 public class Film {
     private Integer id;
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустым.")
     private String name;
-    @NotBlank
+    @NotBlank(message = "Описание фильма не может быть пустым.")
     @Size(max = 200)
     private String description;
     @Positive
     private int duration;
-    @NonNull
+    @NotNull(message = "Дата релиза не может быть пустой.")
     private LocalDate releaseDate;
-    private Integer rate;
+
+    private int rate;
     private RatingMpa mpa;
     private List<Genre> genres;
 
@@ -52,7 +54,7 @@ public class Film {
         this.description = description;
         this.duration = duration;
         this.releaseDate = releaseDate;
-        this.rate = rate;
+        this.rate = Objects.requireNonNullElse(rate, 0);
         this.mpa = mpa;
         this.genres = genres;
     }

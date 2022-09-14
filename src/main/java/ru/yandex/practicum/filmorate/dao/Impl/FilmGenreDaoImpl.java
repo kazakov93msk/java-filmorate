@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -7,21 +8,30 @@ import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.rowmapper.GenreMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmGenreDaoImpl implements FilmGenreDao {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public FilmGenreDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final GenreMapper genreMapper;
 
     @Override
     public List<Genre> findGenresByFilmId(Integer filmId) {
         String sql = "SELECT g.* FROM genres g JOIN films_genres fg ON g.id = fg.genre_id WHERE fg.film_id = ?";
-        return jdbcTemplate.query(sql, new GenreMapper(), filmId);
+        return jdbcTemplate.query(sql, genreMapper, filmId);
+    }
+
+    @Override
+    public void createFilmGenreBatch(Integer filmId, Set<Genre> genres) {
+        List<Object[]> batch = new ArrayList<>();
+        for (Genre genre : genres) {
+            Integer[] values = new Integer[] {filmId, genre.getId()};
+            batch.add(values);
+        }
+        jdbcTemplate.batchUpdate("INSERT INTO films_genres (film_id, genre_id) VALUES (?,?)", batch);
     }
 
     @Override

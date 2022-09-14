@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Objects;
 
@@ -10,6 +11,7 @@ import java.util.Objects;
 public class Genre {
     private Integer id;
     @Size(max = 64)
+    @NotBlank(message = "Название жанра не может быть пустым.")
     private String name;
 
     public Genre(Integer id, @Nullable String name) {

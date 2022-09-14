@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,21 +12,14 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserService {
     private final UserDao userDao;
     private final UserFriendDao friendDao;
-
-    @Autowired
-    public UserService(UserDao userDao, UserFriendDao friendDao) {
-        this.userDao = userDao;
-        this.friendDao = friendDao;
-    }
 
     public List<User> findAllUsers() {
         return userDao.findAllUsers();
@@ -79,10 +73,8 @@ public class UserService {
         return user;
     }
 
-    public List<User> getFriendIntersection(Integer id, Integer otherId) {
-        return friendDao.findFriendsByUserId(id).stream()
-                .filter(friendDao.findFriendsByUserId(otherId)::contains)
-                .collect(Collectors.toList());
+    public List<User> findFriendsIntersection(Integer userId, Integer otherId) {
+        return friendDao.findFriendsIntersection(userId, otherId);
     }
 
     public void validate(User user) {

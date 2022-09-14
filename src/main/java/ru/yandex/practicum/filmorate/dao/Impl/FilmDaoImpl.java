@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -16,23 +17,28 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDaoImpl implements FilmDao {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final FilmMapper filmMapper;
 
     @Override
     public List<Film> findAllFilms() {
-        return jdbcTemplate.query("SELECT * FROM films", new FilmMapper());
+        String sql = "SELECT f.*, r.name AS rating, COUNT(user_id) AS likes "
+                + "FROM films f JOIN ratings_mpa r ON f.mpa = r.id "
+                + "LEFT JOIN films_likes fl ON f.id = fl.film_id "
+                + "GROUP BY f.id";
+        return jdbcTemplate.query(sql, filmMapper);
     }
 
     @Override
     public Optional<Film> findFilmById(Integer filmId) {
-        String sql = "SELECT * FROM films WHERE id = ?";
-        return jdbcTemplate.query(sql, new FilmMapper(), filmId).stream().findFirst();
+        String sql = "SELECT f.*, r.name AS rating, COUNT(user_id) AS likes "
+                + "FROM films f JOIN ratings_mpa r ON f.mpa = r.id "
+                + "LEFT JOIN films_likes fl ON f.id = fl.film_id "
+                + "WHERE f.id = ?"
+                + "GROUP BY f.id";
+        return jdbcTemplate.query(sql, filmMapper, filmId).stream().findFirst();
     }
 
     @Override
