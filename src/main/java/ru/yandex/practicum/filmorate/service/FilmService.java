@@ -73,6 +73,7 @@ public class FilmService {
             ));
         }
         likeDao.createLike(filmId, userId);
+        film.setRate(film.getRate() + 1);
         return fillFilmData(film);
     }
 
@@ -89,21 +90,10 @@ public class FilmService {
     }
 
     public List<Film> getPopular(Integer count) {
-        System.out.println(count);
-        return filmDao.findAllFilms().stream()
-                .sorted((f1, f2) ->
-                        likeDao.findLikesByFilmId(f2.getId()).size() - likeDao.findLikesByFilmId(f1.getId()).size()
-                )
-                .limit(count)
-                .collect(Collectors.toList());
+        return likeDao.findPopular(count);
     }
 
     private Film fillFilmData(Film film) {
-        RatingMpa ratingMpa = mpaDao.findRatingMpaById(film.getMpa().getId()).orElseThrow(
-                () -> new NotFoundException(String.format("Не найдено рейнтинга MPA с ID %d", film.getMpa().getId()))
-        );
-        film.setMpa(ratingMpa);
-
         film.setGenres(filmGenreDao.findGenresByFilmId(film.getId()));
         return film;
     }

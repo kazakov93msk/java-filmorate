@@ -17,7 +17,6 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@Component
 @Validated
 @RequestMapping("/genres")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)

@@ -15,7 +15,6 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@Component
 @Validated
 @RequestMapping("/films")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)

@@ -19,7 +19,6 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@Component
 @Validated
 @RequestMapping("/mpa")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)

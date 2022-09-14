@@ -3,14 +3,14 @@ package ru.yandex.practicum.filmorate.dao.Impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.UserFriendDao;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.rowmapper.UserMapper;
 
 import java.util.List;
 
-@Component
+@Repository
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserFriendDaoImpl implements UserFriendDao {
     private final JdbcTemplate jdbcTemplate;
